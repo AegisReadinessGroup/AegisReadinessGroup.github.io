@@ -925,14 +925,16 @@
   <div class="section-eyebrow">Engage</div>
   <h2 class="section-title">Get In Touch</h2>
   <p class="section-sub">Whether you need a quote, a briefing, or a mission — we're ready to respond.</p>
-  <div class="contact-form">
+
+  <!-- Form -->
+  <div class="contact-form" id="contactForm">
     <div class="form-row">
-      <input type="text" class="form-input" placeholder="First Name">
-      <input type="text" class="form-input" placeholder="Last Name">
+      <input type="text" id="firstName" class="form-input" placeholder="First Name">
+      <input type="text" id="lastName" class="form-input" placeholder="Last Name">
     </div>
-    <input type="email" class="form-input" placeholder="Email Address">
-    <input type="text" class="form-input" placeholder="Organization (optional)">
-    <select class="form-input">
+    <input type="email" id="contactEmail" class="form-input" placeholder="Email Address">
+    <input type="text" id="organization" class="form-input" placeholder="Organization (optional)">
+    <select id="interest" class="form-input">
       <option value="" disabled selected>— I'm interested in —</option>
       <option>Free Assessment Subscription</option>
       <option>Executive Traveler Package</option>
@@ -941,10 +943,76 @@
       <option>Tactical Medicine Training</option>
       <option>General Inquiry</option>
     </select>
-    <textarea class="form-input" placeholder="Tell us about your situation..."></textarea>
-    <button class="btn btn-primary" style="cursor:pointer; font-size:12px; border:none;">Submit Request</button>
+    <textarea id="message" class="form-input" placeholder="Tell us about your situation..."></textarea>
+    <button id="contactBtn" class="btn btn-primary" onclick="submitContact()" style="cursor:pointer; font-size:12px; border:none;">Submit Request</button>
+  </div>
+
+  <!-- Success -->
+  <div id="contactSuccess" style="display:none; text-align:center; padding: 40px 0;">
+    <div style="font-family:'Bebas Neue',sans-serif; font-size:42px; letter-spacing:2px; color:var(--bright); margin-bottom:12px;">Message Received.</div>
+    <p style="color:var(--lt); font-size:15px; font-weight:300; line-height:1.7;">We'll be in touch shortly.<br>Readiness, Where It Matters.</p>
+  </div>
+
+  <!-- Error -->
+  <div id="contactError" style="display:none; text-align:center; padding: 20px 0;">
+    <p style="color:#e05555; font-size:14px;">Something went wrong — please try again or email us directly.</p>
   </div>
 </section>
+
+<script>
+  async function submitContact() {
+    const btn       = document.getElementById('contactBtn');
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName  = document.getElementById('lastName').value.trim();
+    const email     = document.getElementById('contactEmail').value.trim();
+    const org       = document.getElementById('organization').value.trim();
+    const interest  = document.getElementById('interest').value;
+    const message   = document.getElementById('message').value.trim();
+
+    // Basic validation
+    if (!firstName || !email || !email.includes('@')) {
+      document.getElementById('contactEmail').style.borderColor = '#c0392b';
+      document.getElementById('contactEmail').placeholder = 'Please enter a valid email';
+      setTimeout(() => {
+        document.getElementById('contactEmail').style.borderColor = '';
+        document.getElementById('contactEmail').placeholder = 'Email Address';
+      }, 2500);
+      return;
+    }
+
+    // Loading state
+    btn.textContent = 'Sending...';
+    btn.style.opacity = '0.7';
+    btn.style.pointerEvents = 'none';
+
+    try {
+      const res = await fetch('https://formspree.io/f/xgonzawz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          name:         `${firstName} ${lastName}`,
+          email:        email,
+          organization: org,
+          interest:     interest,
+          message:      message,
+          _subject:     `New Aegis Inquiry — ${interest || 'General'}`
+        })
+      });
+
+      if (res.ok) {
+        document.getElementById('contactForm').style.display    = 'none';
+        document.getElementById('contactSuccess').style.display = 'block';
+      } else {
+        throw new Error('Failed');
+      }
+    } catch(e) {
+      document.getElementById('contactError').style.display = 'block';
+      btn.textContent = 'Submit Request';
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'auto';
+    }
+  }
+</script>
 
 <!-- FOOTER -->
 <footer>
